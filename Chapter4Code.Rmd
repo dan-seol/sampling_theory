@@ -1,0 +1,187 @@
+---
+title: "Sampling code"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+### Ratio and regression estimation
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+library(survey)
+library(tidyverse)
+### Ratio
+data(api)
+
+apipop_complete = apipop %>% filter(!is.na(enroll),!is.na(api.stu))
+
+
+dim(apipop_complete)
+
+```
+
+## Goal: estimate the number of API test students
+
+### First try an SRS of size 500
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+set.seed(05022009)
+
+api_srs_500 = apipop_complete %>% 
+  slice(sample(1:nrow(apipop_complete), size=500, replace=F)) %>%
+  mutate(fpc = nrow(apipop_complete))
+
+api_srs_design = svydesign(ids=~1,data=api_srs_500,fpc=~fpc)
+svytotal(~api.stu, api_srs_design)
+
+```
+
+### Now use auxiliary variable: total school enrollment
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+
+
+apipop_totals = apipop_complete %>% summarise(N_enroll = sum(enroll), 
+                              N_API = sum(api.stu), 
+                              B = N_API/N_enroll)
+apipop_totals                              
+```
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+r =  svyratio(~api.stu,~enroll,api_srs_design)
+r
+confint(r)
+```
+
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+predict_r = predict(r,total=apipop_totals %>% pull(N_enroll))
+predict_r
+svytotal(~api.stu, api_srs_design)
+predict_r$total + c(qnorm(0.025),qnorm(0.975))*predict_r$se
+confint(svytotal(~api.stu, api_srs_design))
+```
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+apipop_totals ## True total
+
+```
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+apipop_complete %>% summarise(CV_enroll = (sd(enroll)/sqrt(500))/mean(enroll))
+```
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+0.0336*3210186
+```
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+ggplot(api_srs_500,aes(x=enroll,y=api.stu)) + 
+  geom_point() + geom_abline(intercept=0,slope=r[[1]],color="red")
+```
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+api_srs_500 %>% summarise(cor=cor(enroll,api.stu))
+```
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+svyboxplot(I(api.stu/enroll)~1,api_srs_design)
+```
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+r_enroll=  svyratio(~enroll,~api.stu,api_srs_design)
+
+predict(r_enroll, total=3184662)
+svytotal(~enroll, api_srs_design)
+apipop_totals                              
+
+```
+
+### Regression estimation 
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""} 
+regmod=svyglm(api.stu~enroll, api.srsdesign)  
+summary(regmod) 
+``` 
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""} 
+predict(regmod,newdata=data.frame(enroll=3811472)) 
+predict(r,total=3811472)  
+``` 
+#### Regression estimator less efficient
+## Ratio estimation for strata 
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+api.stratdesign 
+``` 
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""} 
+
+``` 
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""} 
+r.apistu.strat.sep =  svyratio(~api.stu,~enroll,api.stratdesign,separate=TRUE)   
+print("Separate ratio estimates") 
+r.apistu.strat.sep
+print("Combined ratio estimate")
+r.apistu.strat.comb =
+svyratio(~api.stu,~enroll,api.stratdesign,separate=FALSE)
+r.apistu.strat.comb  
+
+``` 
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+print("Separate ratio estimate of total API enrollment")
+predict(r.apistu.strat.sep,total=by(apipop.completeonly$enroll,apipop.completeonly$stype, sum))
+
+print("Combined ratio estimate of total API enrollment")
+predict(r.apistu.strat.comb, total=sum(apipop.completeonly$enroll))
+print("Previous estimate of API enrollment")
+svytotal(~api.stu,api.stratdesign)
+``` 
+
+## Post stratification
+
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""} 
+
+poptable=data.frame(stype=c("E","H","M"), total=as.numeric(table(apipop.completeonly$stype)))
+poptable 
+
+postdesign=postStratify(design = api.srsdesign,strata = ~stype, population = poptable)
+svytotal(~api.stu,postdesign) 
+```
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""} 
+table(apipop.completeonly$stype)
+```
+
+### Two methods for domain estimation
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+svyby(~api.stu,~stype,design=api.srsdesign, svymean) 
+``` 
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""} 
+svyby(~api.stu,~I(stype=="E"),design=api.srsdesign, svymean) 
+``` 
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+svyratio(~I(api.stu*(stype=="E")),~I(stype=="E"),design=api.srsdesign)
+svyratio(~I(api.stu*(stype=="H")),~I(stype=="H"),design=api.srsdesign)
+svyratio(~I(api.stu*(stype=="M")),~I(stype=="M"),design=api.srsdesign)
+``` 
+

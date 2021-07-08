@@ -1,0 +1,343 @@
+---
+title: "260677676 MATH525 Assignment2_Part2"
+author: "Dan Yunheum Seol"
+date: "2/27/2019"
+output: pdf_document
+---
+```{r}
+library(formatR)
+```
+#4.18 
+Use covariances derived in Appendix A to show the result in (4.8)
+
+Covariances derived:
+Let $Z_i$ be our sampling indicator random variables for ith unit in the population.
+$$
+V(Z_i) = Cov(Z_i, Z_i) = \frac{n(N-n)}{N^2}
+$$
+if $i \neq j$
+$$
+Cov(Z_i, Z_j)= -\frac{n(N-n)}{N^2(N-1)}
+$$
+Then we should show that
+$$
+E[(\overline{y}-B\overline{x})^2] = V(\frac{1}{n}\sum_{i \in S}(y_i - Bx_i)^2) = \bigg(1-\frac{n}{N}\bigg)\frac{S^2_y - 2BRS_x S_y+B^2S_x^2}{n}
+$$
+Recall that
+$$
+R =  \frac{\sum_{i=1}^N(y_i-\overline{y}_u)(x_i-\overline{x}_u)}{(N-1)S_x S_y}
+$$
+$$
+\frac{1}{n^2} V(\sum_{i \in S}(y_i - Bx_i)^2) = \frac{1}{n^2} V(\sum_{i =1 }^NZ_i(y_i - Bx_i)^2) =
+$$
+$$
+\frac{1}{n^2} \sum_{i=1}^N \sum_{j=1}^N Cov((y_i - B x_i)Z_i, (y_j-Bx_j)Z_j)
+$$
+$$
+\frac{1}{n^2} \{\sum_{i=1}^N (y_i - Bx_i)^2 V(Z_i) + \sum_{i=1}^N \sum_{i \neq j}(y_i - Bx_i)(y_j - Bx_j)Cov(Z_i, Z_j)\} = 
+$$
+$$
+\frac{1}{n^2}\{\frac{n(N-n)}{N^2}\sum_{i=1}^N (y_i - Bx_i)^2 - \frac{n(N-n)}{N^2(N-1)}\sum_{i=1}^N \sum_{i \neq j} (y_i - Bx_i)(y_j - Bx_j)\} = 
+$$
+$$
+\frac{1}{n^2}\{\frac{n(N-n)N}{N^2(N-1)}\sum_{i=1}^N (y_i - Bx_i)^2 -\frac{n(N-n)}{N^2(N-1)}\sum_{i=1}^N (y_i - Bx_i)^2-\frac{n(N-n)}{N^2(N-1)}\sum_{i=1}^N \sum_{i \neq j} (y_i - Bx_i)(y_j - Bx_j)\}  =
+$$
+$$
+\frac{1}{n^2} \{\frac{n(N-n)}{N(N-1)}\sum_{i=1}^N (y_i - Bx_i)^2 - \sum_{i=1}^N\sum_{j=1}^N(y_i - Bx_i)(y_j - Bx_j)\} =
+$$
+$$
+\frac{1}{n^2} \{\frac{n(N-n)}{N(N-1)}\sum_{i=1}^N (y_i - Bx_i)^2 - \frac{n(N-n)}{N^2(N-1)}\bigg(\sum_{i=1}^N(y_i - Bx_i)\bigg)^2\} =
+$$
+$$
+\frac{1}{n} \{\frac{(N-n)}{N(N-1)}\sum_{i=1}^N (y_i - Bx_i)^2 - \frac{(N-n)}{N^2(N-1)}\bigg(\sum_{i=1}^N(y_i - Bx_i)\bigg)^2\} =
+$$
+$$
+\frac{1}{n}\bigg(1-\frac{n}{N}\bigg) \{\frac{1}{(N-1)}\sum_{i=1}^N (y_i - Bx_i)^2 - \frac{1}{N(N-1)}\bigg(\sum_{i=1}^N(y_i - Bx_i)\bigg)^2\} 
+$$
+Now, remark that $\sum_{i=1}^N (y_i-Bx_i)$
+$$
+\sum_{i=1}^N (y_i-Bx_i) = \sum_{i=1}^N (y_i)- \sum_{i=1}^N (Bx_i) = N\overline{y}_U-B\overline{x}_U = N\overline{y}_U - N\frac{\overline{y}_U}{\overline{x}_U} = 0 \overline{x}_U
+$$
+$$
+\frac{1}{n}\bigg(1-\frac{n}{N}\bigg) \{\frac{1}{(N-1)}\sum_{i=1}^N (y_i - Bx_i)^2 - \frac{1}{N(N-1)}\bigg(\sum_{i=1}^N(y_i - Bx_i)\bigg)^2\}  = 
+$$
+$$
+\frac{1}{n}\bigg(1-\frac{n}{N}\bigg) \{\frac{1}{(N-1)}\sum_{i=1}^N (y_i - Bx_i)^2 -0\} =\frac{1}{n}\bigg(1-\frac{n}{N}\bigg) \frac{1}{(N-1)}\sum_{i=1}^N (y_i - Bx_i)^2
+$$
+Also remark
+$$
+\sum_{i=1}^N (y_i - Bx_i)^2 = \sum_{i=1}^N (y_i - \overline{y}_U + \overline{y}_U - Bx_i)^2 =
+$$
+
+$$
+\sum_{i=1}^N(y_i - \overline{y}_U)^2 + \sum_{i=1}^N (B \overline{x}_U - Bx_i)^2 +2\sum_{i=1}^N(y_i - \overline{y}_U) (B \overline{x}_U - Bx_i)  = 
+$$
+$$
+\sum_{i=1}^N(y_i - \overline{y}_U)^2  + B^2\sum_{i=1}^N (\overline{x}_U - Bx_i)^2 + +2B\sum_{i=1}^N(y_i - \overline{y}_U) ( \overline{x}_U - x_i)  =
+$$
+$$
+ = B^2S_x^2(N-1) +  S_y^2(N-1) - 2(N-1) BRS_x S_y
+$$
+
+So
+$$
+\frac{1}{n}\bigg(1-\frac{n}{N}\bigg) \frac{1}{(N-1)}\sum_{i=1}^N (y_i - Bx_i)^2 = 
+$$
+$$
+\bigg(1-\frac{n}{N}\bigg)\frac{\{B^2S_x^2(N-1) +  S_y^2(N-1) - 2(N-1) BRS_x S_y\}}{n}
+$$
+
+Proving our claim.
+
+#4.22
+
+Use (4.5)
+$$
+\overline{y}_r - \overline{y}_U =  \frac{\overline{x}_U(\overline{y}-B\overline{x})}{\overline{x}} = (\overline{y}-B\overline{x}) \frac{(\overline{x}- \overline{x}_U)}{\overline{x}}
+$$
+and (A.10)
+$$
+Cov(\overline{x}, \overline{y}) = \bigg( 1- \frac{n}{N}\bigg) \frac{R S_x S_y}{n}
+$$
+To show
+$$
+Bias(\overline{y}_r) = E[\overline{y}_r - \overline{y}_U] \approx \frac{1}{\overline{x}_U}[BV(\overline{x}) - Cov(\overline{x}, \overline{y})] = \bigg(1- \frac{n}{N} \bigg) \frac{1}{n \overline{x}_U}(BS_x^2-RS_xS_y)
+$$
+
+We start with
+$$
+E[\overline{y}_r - \overline{y}_U] = E[(\overline{y} -B \overline{x})(\frac{\overline{x}_U}{\overline{x}})] = E[\overline{y}-B\overline{x}] - E[(\overline{y}-B\overline{x})\frac{\overline{x}-\overline{x}_U}{\overline{x}}] \approx
+$$ 
+
+$$
+\overline{y}_U - \overline{y}_U - E[(\overline{y}-\overline{x}B)(\frac{\overline{x}}{\overline{x}_U})] = 
+$$
+
+$$
+-\frac{1}{\overline{x}_U}E[\overline{y}\overline{x}] + \frac{1}{\overline{x}_U}BE[\overline{x}^2] =
+$$
+
+$$
+-\frac{1}{\overline{x}_U} \bigg(Cov(\overline{x}, \overline{y}) - E[\overline{x}]E[\overline{y}]\bigg) + \frac{1}{\overline{x}_U}\{B(V[\overline{x}]+(E[\overline{x}])^2)\} =
+$$
+
+$$
+\frac{1}{\overline{x}_U}\{BV[\overline{x}]-Cov(\overline{x}, \overline{y})\} + \frac{1}{\overline{x}_U}\{\overline{x}_U^2 - \overline{x}_U\overline{y}_U\} =
+$$
+$$
+\frac{1}{\overline{x}_U}\{BV[\overline{x}]-Cov(\overline{x}, \overline{y})\} + \overline{x}_U - \overline{y}_U
+$$
+Since the last term is a constant, we can claim
+$$
+Bias(\overline{y}_r) \approx \frac{1}{\overline{x}_U}[BV(\overline{x})-Cov(\overline{x}, \overline{y})] = \bigg(1-\frac{n}{N}\bigg)\frac{1}{n \overline{x}_U}\bigg(BS_x^2- RS_xS_y\bigg)
+$$
+, which is a sufficient answer.
+
+
+
+#4.24
+Suppose there are two domains, defined by the indicator variable
+$$
+x_i = \begin{cases}1 & i \in D_1\\ 0 & i \notin D_2 \end{cases}
+$$
+Letting $u_i := x_iy_i$, the population values of the two domain means are
+$$
+\overline{y}_{U1} = \frac{\sum_{i=1}^N x_i y_i}{\sum_{i=1}^N x_i} = \frac{t_u}{t_x} = \frac{\overline{u}_U}{\overline{x}_U}
+$$
+and
+$$
+\overline{y}_{U2} = \frac{\sum_{i=1}^N(1-x_i)y_i}{\sum_{i=1}^N(1-x_i)} = \frac{t_y - t_u}{N - t_x} = \frac{\overline{y}_U - \overline{u}_U}{1-\overline{x}_U}
+$$
+If an SRS of size is taken from the population of size N, the population domain menas may be estimated by
+$$
+\overline{y}_1 = \frac{\widehat{t}_u}{\widehat{t}_x} = \frac{\overline{u}}{\overline{x}}
+$$
+$$
+\overline{y}_2 = \frac{\widehat{t}_y - \widehat{t}_u}{N-\widehat{t}_x} = \frac{\overline{y} - \overline{u}}{1-\overline{x}}
+$$
+#(a)
+Use an argument similar to that in the discussion following (4.5) to show that 
+
+$$
+Cov(\overline{y}_1, \overline{y}_2) \approx \frac{1}{\overline{x}_U (1-\overline{x}_U)}Cov[\bigg( \overline{u} - \frac{t_u}{t_x} \overline{x} \bigg), \{\overline{y}- \overline{u} - \frac{t_y - t_u}{N-t_x}(1-\overline{x})\}]
+$$
+We have 
+$$
+Cov(\overline{y}_1, \overline{y}_2) \approx E[(\overline{y}_1 - \overline{y}_{1U})(\overline{y}_2 - \overline{y}_{2U})] = 
+$$
+
+
+Remark that
+
+$$
+\overline{y}_{1} - \overline{y}_{1U} = \frac{1}{\overline{x}}(\overline{u} - \overline{x}\overline{y}_{1U}) = \frac{1}{\overline{x}}(\overline{u} - \frac{t_u}{t_x}\overline{x}) \approx \frac{1}{\overline{x}_U}(\overline{u} - \frac{t_u}{t_x}\overline{x})
+$$
+$$
+\overline{y}_2 - \overline{y}_{2U} = (\frac{\overline{y} - \overline{u}}{1-\overline{x}}-  \frac{t_y - t_u}{N - t_x}) = \frac{1}{(1-\overline{x})}\bigg((\overline{y}-\overline{u}) - \frac{t_y - t_u}{N - t_x} (1- \overline{x})\bigg) \approx \frac{1}{(1-\overline{x}_U)}\bigg((\overline{y}-\overline{u}) - \frac{t_y - t_u}{N - t_x}(1- \overline{x}) \bigg)
+$$
+So we obtain
+$$
+Cov(\overline{y}_1, \overline{y}_2) \approx  \frac{1}{\overline{x}_U(1-\overline{x}_U)}E[\bigg( \overline{u} - \frac{t_u}{t_x}\overline{x}\bigg)\bigg((\overline{y}-\overline{u}) - \frac{t_y - t_u}{N - t_x}(1- \overline{x})\bigg)]
+$$
+Now, remark that
+$$
+E[\frac{1}{\overline{x}_U}(\overline{u} - \frac{t_u}{t_x}\overline{x})] = \frac{1}{\overline{x}_U} E[(\overline{u} - \frac{\overline{u}_U}{\overline{x}_U}\overline{x})] = \frac{1}{\overline{x}_U} [\overline{u}_U - \frac{\overline{u}_U}{\overline{x}_U} \overline{x}_U] = 0
+$$
+It follows that
+$$
+ \frac{1}{\overline{x}_U(1-\overline{x}_U)}E[\bigg( \overline{u} - \frac{t_u}{t_x}\overline{x}\bigg)\bigg((\overline{y}-\overline{u}) - \frac{t_y - t_u}{N - t_x}(1- \overline{x})\bigg)] =  \frac{1}{\overline{x}_U(1-\overline{x}_U)}Cov(\bigg( \overline{u} - \frac{t_u}{t_x}\overline{x}\bigg), \bigg((\overline{y}-\overline{u}) - \frac{t_y - t_u}{N - t_x}(1- \overline{x})\bigg))
+$$
+which is the result we wanted.
+
+#(b)
+Show that 
+$$
+\frac{1}{\overline{x}_U(1-\overline{x}_U)}Cov(\bigg( \overline{u} - \frac{t_u}{t_x}\overline{x}\bigg), \bigg((\overline{y}-\overline{u}) - \frac{t_y - t_u}{N - t_x}(1- \overline{x})\bigg)) = 0
+$$
+Using A.10, which is
+$$
+Cov(\overline{x}, \overline{y}) = (1-\frac{n}{N})(\frac{RS_xS_y}{n}) = (1-\frac{n}{N}) \frac{1}{n}\sum_{i=1}^N(y_i-\overline{y}_U)(x_i-\overline{x}_U)
+$$
+$$
+\sum_{i=1}^N \bigg\{\bigg(u_i - \frac{t_u}{t_x}x_i\bigg) - \bigg( \overline{u}_U - \frac{t_u}{t_x}\overline{x}_U \bigg)\bigg\}\bigg\{\bigg((y_i-u_i)-\frac{t_y - t_u}{N - t_x}(1- x_i)\bigg) -  \bigg((\overline{y}_U-\overline{u}_U) - \frac{t_y - t_u}{N - t_x}(1- \overline{x}_U)\bigg) \bigg\} = 
+$$
+$$
+\sum_{i=1}^N \bigg\{\bigg(u_i - \overline{u}_U\bigg) - \frac{t_u}{t_x}\bigg(
+x_i - \overline{x}_U\bigg) \bigg\} \bigg\{ \bigg((y_i-\overline{y}_U ) - (u_i- \overline{u}_U) \bigg)+ \frac{t_y - t_u}{N - t_x} \bigg(x_i - \overline{x}_U \bigg)   \bigg\} =
+$$
+We show that the "$RS_xS_y$" part is zero.
+\\For any constant k,
+$$
+k \sum_{i=1}^N \bigg\{\bigg(u_i - \overline{u}_U\bigg) - \frac{t_u}{t_x}\bigg(
+x_i - \overline{x}_U\bigg) \bigg\} = \overline{y}_U \{(N\overline{u}_U - N\overline{u}_U) - \frac{t_u}{t_x}(N\overline{x}_U - N\overline{x}_U)\} = 0 
+$$
+and likewise 
+$$
+k\sum_{i=1}^N  \bigg\{ \bigg((y_i-\overline{y}_U ) - (u_i- \overline{u}_U) \bigg)+ \frac{t_y - t_u}{N - t_x} \bigg(x_i - \overline{x}_U \bigg)   \bigg\} = 0
+$$
+
+
+So we have
+$$
+\sum_{i=1}^N \bigg\{\bigg(u_i - \frac{t_u}{t_x} x_i \bigg) \bigg((y_i- u_i)-\frac{t_y-t_u}{N-t_x} x_i\bigg) \bigg\} =
+$$
+
+$$
+\sum_{i=1}^N \bigg\{u_i (y_i - u_i) - \frac{t_u}{t_x}x_i(y_i-u_i)-u_i\frac{t_y-t_u}{N-t_x}x_i + \frac{t_u}{t_x}\frac{t_y-t_u}{N-t_x}x_i^2\bigg\}
+$$
+Now remark that since $x_i$ either takes value 0 or value 1, $x_i^2 = x_i$, $x_i u_i = u_i$, and $u_i y_i = u_i^2$. Thus we would have 
+\\ $\sum_{i=1}^N{u_i(y_i-u_i)}= \sum_{i=1}^N(u_i^2-u_i^2)=0$
+\\ $\sum_{i=1}^N{x_i*(y_i - u_i)} = \sum_{i=1}^N(u_i-u_i) = 0$
+\\ $\sum_{i=1}^N{u_ix_i}= \sum_{i=1}^N u_i = t_u$
+\\ $\sum_{i=1}^N x_i^2 = \sum_{i=1}^N x_i = t_x$.
+\\ It follows that
+$$
+\sum_{i=1}^N \bigg\{u_i (y_i - u_i) - \frac{t_u}{t_x}x_i(y_i-u_i)-u_i\frac{t_y-t_u}{N-t_x}x_i + \frac{t_u}{t_x}\frac{t_y-t_u}{N-t_x}x_i^2\bigg\} = 0 - 0 - t_u \frac{t_y-t_u}{N-t_x} +  \frac{t_u}{t_x}t_x \frac{t_y-t_u}{N-t_x} = 0
+$$
+proving our claim.
+
+
+#4.44(a)
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(survey)
+library(srvyr)
+library(knitr)
+library(kableExtra)
+```
+```{r, dpi=50}
+ipums <- read_csv('ipums.csv')      
+head(ipums)
+dim(ipums)
+```
+```{r}
+ipums_complete = ipums %>% filter(!is.na(Inctot))
+#Verify that none of the data is missing
+dim(ipums_complete)
+```
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+
+
+ipums_totals = ipums_complete %>% summarise(sum_Ages = sum(Age), 
+                              N_Inctot = sum(Inctot), 
+                              B = N_Inctot/sum_Ages)
+ipums_totals                              
+```
+Since we finished setting up our B, let's obtain a simple random sample of 500
+```{r}
+set.seed(329)
+srs_500=ipums_complete %>% slice(sample(1:nrow(ipums_complete),size=500,replace=F)) %>%   mutate(fpc = nrow(ipums_complete))
+dim(srs_500)
+
+srs_500 %>% 
+  summarise(SampleMean=mean(Inctot),
+                          SampleVar = var(Inctot),
+                          SampleSD = sd(Inctot))  %>% 
+  gather(stat,val) %>% 
+  kable(.,format="latex",digits=0) %>% 
+  kable_styling(.)
+```
+
+
+```{r}
+srs_design = svydesign(ids=~1,data=srs_500,fpc=~fpc)
+svytotal(~Inctot, srs_design)
+```
+ 
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+r =  svyratio(~Inctot,~Age,srs_design)
+r
+confint(r)
+```
+
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+predict_r = predict(r,total=ipums_totals %>% pull(sum_Ages))
+predict_r
+svytotal(~Inctot, srs_design)
+predict_r$total + c(qnorm(0.025),qnorm(0.975))*predict_r$se
+confint(svytotal(~Inctot, srs_design))
+```
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+ipums_totals ## True total
+
+```
+The standard error does not decrease but rather increases, this can be due to low correlation between age and total income.
+
+```{r}
+R <- srs_500 %>% summarise(cor=cor(Age,Inctot))
+R
+
+```
+
+
+Another criterion to check is to see whether
+
+$$
+Cor(X, Y) = R \geq \frac{CV(X)}{2CV(Y)}
+$$
+
+In case where this does not hold, we have no guarantee that the standard error will decrease.
+
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+CVx = ipums_complete %>% summarise(CV_Age = (sd(Age)/sqrt(500))/mean(Age))
+CVx
+CVy = ipums_complete %>% summarise(CV_Inctot = (sd(Inctot)/sqrt(500))/mean(Inctot))
+CVy
+```
+
+```{r}
+#If true we will have a higher variance
+(R < CVx[1]/(2*CVy[1]))
+```
+
+```{r,tidy=TRUE,message=FALSE,warning=FALSE,comment=""}
+ggplot(srs_500,aes(x=Age,y=Inctot)) + 
+  geom_point() + geom_abline(intercept=0,slope=r[[1]],color="red")
+```
+

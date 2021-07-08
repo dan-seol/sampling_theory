@@ -1,0 +1,346 @@
+---
+title: "Dan Seol - 260677676 MATH 525 Assignment 2"
+output: pdf_document
+---
+
+#3.24
+ Show that the variance is minimized for a fixed cost with the cost function in (3.12) when $n_h  \propto  \frac{N_h S_h}{\sqrt{c_h}}$
+ We want to minimize
+$$
+ C = c_0 + \sum_{h=1}^H c_h n_h
+$$
+
+for a fixed variance
+$$
+V(\hat{t}_{str}) = \sum_{h=1}^H (1-\frac{n_h}{N_h})N_h^2 \frac{S_h^2}{n_h}
+$$
+
+We use Lagrange multipliers.
+
+First, for a given strata, with samples $\vec{n} = (n_1, n_2, ... , n_H)$ construct a function $L(\vec{n})$ such that
+
+$$
+L(\vec{n}) = c_0 + \sum_{h=1}^H c_h n_h - \lambda \{ \sum_{h=1}^H (1-\frac{n_h}{N_h})(\frac{N_h}{N})^2 (\frac{S_h^2}{n_h})\}
+$$
+such that
+
+$$
+\nabla L(\vec{n}) =(\frac{\partial L}{\partial n_1}, \frac{\partial L}{\partial n_2}, ... , \frac{\partial L}{\partial n_h}) = \vec{0}
+$$
+
+Remark $\forall i \in \{1, ..., H\}$
+$$
+\frac{\partial L}{ \partial n_i} = c_i  - \lambda\frac{\partial }{\partial n_i} \{(1-\frac{n_i}{N_i})(\frac{N_i}{N})^2 \frac{S^2_i}{n_i}\} = 0
+$$
+
+$$
+\implies c_i - \lambda (\frac{N_i}{N})^2 \frac{\partial }{\partial n_i}\{ \frac{S_i^2}{n_i} - 
+\frac{S_i^2}{N_i} \} = c_i n_i - \lambda (\frac{N_i}{N})^2\frac{\partial }{\partial n_i}(\frac{S_i^2}{n_i}) = 0
+$$ 
+
+$$
+\implies c_i + \lambda (\frac{N_i}{N})^2 \frac{S_i^2}{n_i^2} = 0
+$$
+
+$$
+\implies n_i^2 c_i = - \lambda \frac{N_i^2}{N^2}S_i^2 = \frac{-\lambda}{N^2} N_i^2 S_i^2 \implies
+$$
+
+$$
+n_i^2 =\frac{-\lambda}{N^2} \frac{N_i^2 S_i^2}{c_i}  \implies n_i = \sqrt{\frac{-\lambda}{N^2}} \frac{N_i S_i}{\sqrt{c_i}} = r \frac{N_iS_i}{\sqrt{c_i}}
+$$
+where
+$$
+r := \sqrt{\frac{-\lambda}{N^2}} 
+$$
+
+Showing
+
+$\forall h\ n_h \propto \frac{N_iS_i}{\sqrt{c_i}}$
+
+
+#3.37
+
+```{r}
+#Import necessary packages
+library(tidyverse)
+library(survey)
+library(srvyr)
+library(knitr)
+library(kableExtra)
+
+#Discovered a function: strata?
+#svydesign turned out to be a better function since it allows a complex survey design
+```
+
+
+##(a)
+
+Using one or more following variables: $age, sex, race$ or $marstat$, divide the population into strata. Explain how you decided upon your stratification variable and how you chose the number of strata to us. (Note: It is NOT FAIR to use the values of inctot in the population to choose your strata! However, you may draw a pilot sample of size 200 using an SRS to aid you in constructing your strata.
+```{r}
+
+ipums <- read_csv('ipums.csv') 
+head(ipums)
+dim(ipums)
+```
+```{r}
+ipums_complete = ipums %>% filter(!is.na(Inctot))
+#Verify that none of the data is missing  
+dim(ipums_complete)
+```
+
+
+
+```{r}
+summary(ipums_complete)
+```
+```{r}
+#Pick age, sex, race or Marstat
+#It seems that everything besides age is semantically a factor variable
+#Make sure R recognizes those columns as factors
+
+lapply(list(ipums_complete$Marstat, ipums_complete$Age, ipums_complete$Race, ipums_complete$Sex), is.factor)
+ipums_complete$Marstat = as.factor(ipums_complete$Marstat)
+ipums_complete$Race = as.factor(ipums_complete$Race)
+ipums_complete$Sex = as.factor(ipums_complete$Sex)
+
+#Let's discretize ipums_complete$Age
+
+ipums_complete$Agecat<-cut(ipums_complete$Age, c(0, 20, 40, 60, 80, 100),labels= c("S1","S2","S3","S4","S5"))
+
+is.factor(ipums_complete$Agecat)
+```
+
+```{r}
+counts1 = ipums_complete %>% count(Race)%>% mutate(prop=n/sum(n),
+                                                    prop_alloc = round(prop*660))
+counts2 = ipums_complete %>% count(Sex)%>% mutate(prop=n/sum(n),
+                                                    prop_alloc = round(prop*660))
+counts3 = ipums_complete %>% count(Marstat)%>% mutate(prop=n/sum(n),
+                                                    prop_alloc = round(prop*660))
+countsAge = ipums_complete %>% count(Agecat)%>% mutate(prop=n/sum(n),
+                                                    prop_alloc = round(prop*660))
+
+```
+
+```{r}
+
+#for part b
+counts1
+counts2
+counts3
+countsAge
+```
+```{r}
+set.seed(329)
+srs_200=ipums_complete %>% slice(sample(1:nrow(ipums_complete),size=200,replace=F))
+dim(srs_200)
+
+srs_200 %>% 
+  summarise(SampleMean=mean(Inctot),
+                          SampleVar = var(Inctot),
+                          SampleSD = sd(Inctot))  %>% 
+  gather(stat,val) %>% 
+  kable(.,format="latex",digits=0) %>% 
+  kable_styling(.)
+```
+
+```{r}
+#Pilot SRS of 200
+sampleRace = srs_200 %>% count(Race)%>% mutate(prop=n/sum(n),
+                                                    prop_alloc = round(prop*200))
+sampleSex = srs_200 %>% count(Sex)%>% mutate(prop=n/sum(n),
+                                                    prop_alloc = round(prop*200))
+sampleMarstat = srs_200 %>% count(Marstat)%>% mutate(prop=n/sum(n),
+                                                    prop_alloc = round(prop*200))
+sampleAge = srs_200 %>% count(Agecat)%>% mutate(prop=n/sum(n),
+                                                    prop_alloc = round(prop*200))
+sampleRace
+sampleSex
+sampleMarstat
+sampleAge
+
+```
+```{r}
+
+#Comparing pilot sample vs. sample in part b
+sampleRace
+counts1
+sampleSex
+counts2
+sampleMarstat
+counts3
+sampleAge
+countsAge
+
+```
+  It seems that partitioning data by age is the most promising option here, since there is a seemingly valid explanation why age might affect income (The higher position one gets with respect to career, the more income one would earn).
+
+
+As we have seen from the table output given by the R chunk above,I have constructed five strata, namely
+$$
+\begin{array}{ccccc}
+S_1:=(0,20] & S_2:=(20, 40] & S_3:=(40,60] &S_4:=(60, 80]&S_5:=(80. 100]
+\end{array}
+$$
+```{r}
+ggplot(ipums_complete, aes(Agecat, Inctot))+geom_boxplot()
+```
+
+
+
+##(b)
+
+Using the strata you constructed, draw a stratified random sample using proportional allocation. Use the same overall sample size you used for your SRS in Exercise 37 of Chapter 2. Explain how you calculated the sample size to be drawn from each stratum.
+
+```{r}
+#We have obtained 660 or 661 as optimal sample size in Assignment 1
+set.seed(20171015)
+strat_660 =  inner_join(ipums_complete,countsAge,by="Agecat") %>% group_by(Agecat) %>% slice(sample(1:n,size=prop_alloc, replace=F))
+
+dim(strat_660)
+
+ipums.stratdesign = svydesign(~1,strata=~Agecat,data=strat_660,fpc=~n)
+
+
+```
+```{r}
+#We find the sampling proportion
+
+sampleProp <- 660/dim(ipums)[1]
+sampleProp
+```
+Since we do proportional allocation with $\frac{n}{N} = 0.0123 =1.24\%$, we sample $1.23\%$ of each population stratum.
+
+##(c)
+
+Using the stratified sample you selected with proportional allocation, estimate the
+total income for the population, along with 95% CI.
+```{r}
+svytotal(~Inctot,ipums.stratdesign)
+confint(svytotal(~Inctot,ipums.stratdesign))
+```
+
+##(d)
+
+Using the pilot sample of size 200 to estimate the within-stratum variances, use
+optimal allocation to determine sample stratum sizes. Use the same value of n as in part 37b, which is the same n from the SRS in Exercise 37 of Chapter 2. Draw a stratified random sample from the population along with a 95% CI.
+
+
+
+Since we have no associated cost function with it, we will assume every sample unit has the same cost. Then the optimal allocation becomes Neyman allocation where for strata $h, = 1, ... H$
+$$
+n_h \propto N_h S_h
+$$
+$$
+n_h = n\frac{N_h S_h}{\sum_{i=1}^N N_i S_i}
+$$
+
+```{r}
+#strat_200
+
+
+S_i = inner_join(srs_200,sampleAge,by="Agecat") %>% group_by(Agecat) %>% summarise(SampleSD = sd(Inctot)) 
+S_i
+```
+
+
+
+
+```{r}
+N_i <- as.numeric(unlist(countsAge[2]))
+s_i <- as.numeric(unlist(S_i[2]))
+np_i = N_i*s_i/sum(N_i*s_i)
+
+NeymanAge = ipums_complete %>% count(Agecat)%>% mutate(size = N_i, si=s_i, Neyman=np_i, neyman_prop_alloc = round(np_i*661))
+NeymanAge
+```
+```{r}
+set.seed(20171015)
+#Due to rounding we are taking one more population unit in our sample
+neyman_661 <- inner_join(ipums_complete,NeymanAge,by="Agecat") %>% group_by(Agecat) %>% slice(sample(1:n,size=neyman_prop_alloc, replace=F))
+
+dim(neyman_661)
+
+ipums.Neymandesign = svydesign(~1,strata=~Agecat,data=neyman_661,fpc=~n)
+```
+```{r}
+svytotal(~Inctot,ipums.Neymandesign)
+confint(svytotal(~Inctot,ipums.Neymandesign))
+```
+
+
+
+
+
+##(e)
+Under what conditions can optimal allocation be expected to perform much better
+than proportional allocation? 
+
+Do these conditions exist for this population? Comment on the relative performance you observed between these two allocations.
+
+Optimal allocation (in our case it would be Neyman allocation) is guaranteed to perform better when all the standard deviations are known. 
+
+Yes, the conditions do exist since we can find population stratum-within variances:
+
+```{r}
+S_perf <- inner_join(srs_200,sampleAge,by="Agecat") %>% group_by(Agecat) %>% summarise(PopulationSD = sd(Inctot)) 
+S_perf
+```
+```{r}
+set.seed(20171015)
+s_perf <- as.numeric(unlist(S_perf[2]))
+np_perf = N_i*s_perf/sum(N_i*s_i)
+
+NeymanAge_known = ipums_complete %>% count(Agecat)%>% mutate(size = N_i, si=s_perf, Neyman=np_perf, neyman_prop_alloc = round(np_perf*661))
+NeymanAge_known
+```
+```{r}
+neyman_perf <- inner_join(ipums_complete,NeymanAge_known,by="Agecat") %>% group_by(Agecat) %>% slice(sample(1:n,size=neyman_prop_alloc, replace=F))
+
+dim(neyman_perf)
+
+ipums.Neymanperf = svydesign(~1,strata=~Agecat,data=neyman_perf,fpc=~n)
+```
+```{r}
+svytotal(~Inctot,ipums.Neymanperf)
+confint(svytotal(~Inctot,ipums.Neymanperf))
+```
+Returning identical results with our estimated standard deviations with Neyman allocations, and doing signifacantly better than proportional allocations 
+$$S
+E(\text{Neyman}) = 19465182 << 20326751 =SE(\text{proportional}) $$
+##(f)
+
+Overall, do you think your stratification was worthwhile for sampling from this
+population? How did your stratified estimates compare with the estimate from the
+SRS you took in Chapter 2? If you were to start over on the stratification, what
+would you do differently?
+
+Let us compare the results:
+
+For SRS,
+```{r}
+set.seed(20171015)
+srs_661 = ipums_complete %>% slice(sample(1:nrow(ipums_complete), 
+                                               size=661, replace=F))
+srs_design = survey::svydesign(id=~1,data=srs_661, fpc=rep(53461,661))
+
+svytotal(~Inctot,srs_design)
+confint(svytotal(~Inctot, srs_design))
+
+ggplot(srs_661,aes(x=Inctot)) + geom_histogram(fill="lightblue",col="black")
+```
+
+```{r}
+svytotal(~Inctot,ipums.Neymanperf)
+confint(svytotal(~Inctot,ipums.Neymanperf))
+ggplot(neyman_perf,aes(x=Inctot)) + geom_histogram(fill="lightblue",col="black")
+```
+Overall, I do think the stratification was worth done. Stratified sample returns a bit higher estimate of total population income compared to SRS
+
+For options of alternative stratification I could have done might be:
+
+- Having combinations of factors to construct strata; an example would be a combination of Sex and Age.
+
+
+- I might have partitoned the strata with narrower intervals.

@@ -1,0 +1,45 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(survey)
+library(srvyr)
+library(knitr)
+library(kableExtra)
+```
+```{r}
+ipums <- read_csv('ipums.csv')
+head(ipums)
+dim(ipums)
+```
+
+### (a)
+The process of topcoding would shadow the true distribution of total personal income if one takes a model-based approach. It would also make it harder to perform a more accurate inference.
+
+### (b)
+```{r}
+ipums_complete = ipums %>% filter(!is.na(Inctot))
+#Verify that none of the data is missing
+dim(ipums_complete)
+```
+```{r}
+set.seed(329)
+
+srs_pilot = ipums_complete %>% slice(sample(1:nrow(ipums_complete), 
+                                               size=50, replace=F))
+dim(srs_pilot)
+head(srs_pilot)
+
+srs_pilot %>% 
+  summarise(SampleMean=mean(Inctot),
+                          SampleVar = var(Inctot),
+                          SampleSD = sd(Inctot),
+                          t_hat = mean(Inctot)*53461,
+                          se_t_hat = 53461*sqrt((1 - 50/53461))*sd(Inctot)/sqrt(00))  %>% 
+  gather(stat,val) %>% 
+  kable(.,format="latex",digits=0) %>% 
+  kable_styling(.)
+```

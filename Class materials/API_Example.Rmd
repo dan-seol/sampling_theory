@@ -1,0 +1,67 @@
+---
+title: "API Example"
+output:
+  pdf_document: default
+  html_notebook: default
+  html_document: default
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE,comment=NA)
+```
+
+Load the population data 
+
+```{r}
+library(tidyverse)
+library(survey)
+library(srvyr)
+library(knitr)
+library(kableExtra)
+
+data(api)
+
+## Or from file apipop  = read_csv("apipop.csv")
+
+head(apipop)
+
+apipop_complete = apipop %>% filter(!is.na(enroll))
+
+dim(apipop_complete)
+
+apipop_complete %>% summarise(TotalEnroll = sum(enroll))
+```
+
+
+Take a simple random sample
+```{r}
+set.seed(20070519)
+
+api_srs_500 = apipop_complete %>% slice(sample(1:nrow(apipop_complete), 
+                                               size=500, replace=F))
+dim(api_srs_500)
+head(api_srs_500)
+
+api_srs_500 %>% 
+  summarise(SampleMean=mean(enroll),
+                          SampleVar = var(enroll),
+                          SampleSD = sd(enroll),
+                          t_hat = mean(enroll)*6157,
+                          se_t_hat = 6157*sqrt((1 - 500/6157))*sd(enroll)/sqrt(500))  %>% 
+  gather(stat,val) %>% 
+  kable(.,format="latex",digits=0) %>% 
+  kable_styling(.)
+  
+```
+
+### Estimate total enrollment
+
+```{r}
+api_srs_design = survey::svydesign(id=~1,data=api_srs_500, fpc=rep(6157,500))
+
+svytotal(~enroll,api_srs_design)
+confint(svytotal(~enroll,api_srs_design))
+
+ggplot(api_srs_500,aes(x=enroll)) + geom_histogram(fill="lightblue",col="black")
+```
+

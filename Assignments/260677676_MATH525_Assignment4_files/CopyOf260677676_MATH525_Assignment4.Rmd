@@ -1,0 +1,334 @@
+---
+title: "260677676_Assignment_4 -_MATH_525"
+author: "Dan Yunheum Seol"
+date: '2019 4 20 '
+output:
+  pdf_document: default
+  html_document: default
+---
+#6.6
+The  file  azcounties.dat  gives  data  from  the  2000  U.S.  Census  on  population  and
+housing unit counts for the counties in Arizona (excluding Maricopa County and
+Pima County, which are much larger than the other counties and would be placed in a
+separate stratum $t = \sum_{i=1}^13 t_i$. The file has the value of $t_i$ for every county so you can calculate the population total and variance.
+
+##a
+Calculate the selection probabilities $\psi_i$ for a sample of size 1 with probability
+proportional to 2000 population. Find $\widehat{t}_{\psi}$ for each possible sample, and calculate
+the theoretical variance $V(\widehat{t}_{\psi})$
+
+##b
+Repeat (a) for an equal probability sample of size 1. How do the variances com-
+pare? Why do you think one design is more efficient than the other.
+
+
+
+
+We have the following formulae that we can refer to:
+
+$$
+\widehat{t}_{\psi} = \frac{1}{n}\sum_{i \in R} \frac{t_i}{\psi_i} 
+$$
+
+$$
+V(\widehat{t}_\psi) = \frac{1}{n} \sum_{i=1}^N \psi_i[\frac{t_i}{\psi_i}-t]^2
+$$
+
+and
+
+$$
+\widehat{V}(\widehat{t}_\psi) =\frac{1}{n(n-1)} \sum_{i=1}^N \psi_i[\frac{t_i}{\psi_i}-\widehat{t}_\psi]^2
+$$
+
+```{r}
+
+library(tidyverse)
+library(survey)
+library(srvyr)
+library(pps)
+library(sampling)
+
+```
+
+```{r}
+azcounties <- read_csv('azcounties.csv')
+#azcounties_clean <-azcounties %>% drop_na(population)
+dim(azcounties)
+#dim(azcounties_clean)
+#No missing data
+head(azcounties)
+```
+```{r}
+Mi_az <- azcounties %>% group_by(name) %>% summarise(Mi = population,ti=housing)  %>% ungroup() %>% mutate(phi_eq = 1/n())
+
+Mi_az %>% head()
+
+Mi_az = Mi_az %>% mutate(psi_k =Mi/sum(Mi))
+Mi_az
+```
+
+```{r}
+#a
+#is.data.frame(Mi_az)
+tHat_psi <- (Mi_az$ti)/(Mi_az$psi_k) #n is 1 so we divide it by 1
+t <- sum(Mi_az$ti)
+I <- rep(1, 13)
+
+tvec <-  t*I
+part1<- Mi_az$psi_k*(tHat_psi-tvec)
+part2<- (tHat_psi-tvec)
+v.tHat <- part1 %*% part2
+
+print("Actual total")
+t
+
+print("Estimated totals")
+tHat_psi
+
+print("Theoretical variance")
+v.tHat
+
+
+```
+
+```{r}
+#b
+tHat_phi <- (Mi_az$ti)/(Mi_az$phi_eq) #n is one so we divide it by 1
+
+print("Actual total")
+t
+
+print("Estimated totals - equal probability")
+tHat_phi
+
+part3 <-  Mi_az$phi_eq*(tHat_phi-tvec) # Mi_az$phi_eq= 1/13
+part4 <- (tHat_phi-tvec)
+
+v.tHat2 <- part3 %*% part4 
+
+print("Theoretical variance - equal propbability")
+v.tHat2
+
+
+print("unequal prob var/equal prob var")
+
+v.tHat/v.tHat2
+
+
+```
+
+It seems that the sample with unequal probabilities show a far better performance for both estimated mean and variance. In comparison, the sample from part(a) showed a more consistent fit for total estimates and this is reflected in the reduced variance compared to that for the smaple from part(b)  (the variance reduced to one third to that of sample with equal probabilities). This happens since samples with equal probabilities tend to overrepresent counties with small number of population such as Graham or Greenlee (a county with small population has no reason to have excessive number of housing!).
+
+
+##c
+Now take a with-replacement sample of size 3. Find $\widehat{t}_{\psi}$ and $V(\widehat{t}_{\psi})$.
+```{r}
+set.seed(19970329)
+n_az = 3  #sample we have been asked to draw
+
+oneaz_WR <- Mi_az %>% sample_n(size=n_az, replace=T, weight=Mi)
+oneaz_WR = oneaz_WR %>% group_by(name) %>% mutate(replication= 1:n())
+oneaz_WR 
+```
+```{r}
+oneaz_WR  %>% group_by(name) %>% summarise(count = n()) %>% arrange(desc(count))
+oneaz_sample_WR  <-inner_join(azcounties,oneaz_WR, by='name') %>% mutate(weight= 1/(n_az*psi_k))
+
+dim(oneaz_sample_WR)
+
+```
+```{r}
+#a
+#sample of size 10 with replacement
+oneaz_cluster_WR_design <-svydesign(id=~name, data= oneaz_sample_WR,weight=~weight)
+print("Estimated total number of housing units")
+svytotal(~housing, oneaz_cluster_WR_design)
+print("Actual total number of housing units")
+t
+
+print("Sample variance of estimated total")
+4204.5^2
+
+```
+
+
+#6.10
+
+Use your sample of states drawn with probability proportional to population, from
+Exercise 9, for this problem.
+##a
+Using the sample, estimate the total number of counties in the United States, and
+find the standard error of your estimate. How does your estimate compare with
+the true value of total number of counties (which you can calculate, since the file
+statepps.dat contains the data for the whole population)?
+##b
+Now suppose that your friend Tom finds the ten values of numbers of counties in
+your sample, but does not know that you selected these states with probabilities
+proportional to population. Tom then estimates the total number of counties using
+formulas for an SRS. What values for the estimated total and its standard error are
+calculated by Tom? How do these values differ from yours? Is Tom’s estimator
+unbiased for the population total
+
+```{r}
+
+library(tidyverse)
+library(survey)
+library(srvyr)
+library(pps)
+library(sampling)
+```
+
+```{r}
+statepps <- read_csv('statepps.csv')
+
+#statepps_clean <-statepps %>% drop_na(popn,counties)
+#dim(statepps)
+#dim(statepps_clean)
+# both have dimension 51 7 -no missing data
+
+head(statepps)
+#statepps
+```
+```{r}
+Mi_tbl <- statepps %>% group_by(state) %>% summarise(Mi = popn) %>% ungroup() %>% mutate(N = n())
+
+Mi_tbl %>% head()
+```
+
+
+```{r}
+Mi_tbl = Mi_tbl %>% mutate(psi_k =Mi/sum(Mi))
+Mi_tbl
+```
+
+```{r}
+set.seed(19970329)
+n = 10  #sample we have been asked to draw
+
+onestage_WR <- Mi_tbl %>% sample_n(size=n, replace=T, weight=Mi)
+onestage_WR = onestage_WR %>% group_by(state) %>% mutate(replication= 1:n())
+onestage_WR 
+```
+```{r}
+onestage_WR  %>% group_by(state) %>% summarise(count = n()) %>% arrange(desc(count))
+onestage_sample_WR  <-inner_join(statepps,onestage_WR, by='state') %>% mutate(weight= 1/(n*psi_k))
+
+dim(onestage_sample_WR)
+
+
+```
+```{r}
+#a
+#sample of size 10 with replacement
+onestage_cluster_WR_design <-svydesign(id=~state, data= onestage_sample_WR,weight=~weight)
+print("Estimated total number of counties")
+svytotal(~counties, onestage_cluster_WR_design)
+print("Actual total number of countries")
+sum(statepps$counties)
+```
+
+```{r}
+#b
+#SRSWR to compare
+set.seed(19970319)
+onestage_WR_srs <- sample_n(Mi_tbl, size=10, replace=TRUE, weight=rep(1, nrow(Mi_tbl)))
+onestage_wr_sample_srs <- inner_join(statepps, onestage_WR_srs, by="state")
+dim(onestage_wr_sample_srs)
+
+```
+
+```{r}
+onestage_cluster_WR_srs_design <- svydesign(id =~state, data=onestage_wr_sample_srs, weight=~I(N/n))
+svytotal(~counties, onestage_cluster_WR_srs_design)
+```
+
+
+#6.45 IPUMS exercise
+
+##a 
+Select an unequal probability sampleof10 PSUs where $\psi_i \propto M_i$ where $M_i$ would be the number of persons. Take a subsample of 20 persons in each PSU
+
+
+##b
+Using the sample selected, estimate the population mean and total of inctot. Give the corresponding standard errors along with the estimates. 
+
+```{r}
+
+library(tidyverse)
+library(survey)
+library(srvyr)
+library(pps)
+library(sampling)
+
+```
+
+```{r}
+ipums <- read_csv('ipums.csv')
+head(ipums)
+dim(ipums)
+#ipums_complete = ipums %>% filter(!is.na(Inctot))
+#Verify that none of the data is missing
+#dim(ipums_complete)
+#no missing data
+head(ipums)
+
+#We look for the number of distinct PSU's
+num_PSU <- ipums %>% summarize(Num_PSU=n_distinct(Psu))
+num_PSU
+```
+```{r}
+ipums_tbl <- ipums %>% group_by(Psu) %>% summarise(Mi=n()) %>% ungroup() %>% mutate(N=n())
+ipums_tbl %>% head(., n=10)
+
+```
+```{r}
+print("Total number of schools that will be sampled")
+ipums_tbl %>% ungroup() %>% summarise(Ssutot = sum(Mi)) %>% head()
+```
+
+```{r}
+set.seed(19970319)
+## two-stage sampling without replacement
+n=10
+
+#Initialise
+
+ipums_tbl = ipums_tbl %>% mutate(adj_size=Mi/sum(Mi))
+
+#Forcing the inclusion probabilities to be \leq 1
+ipums_tbl = ipums_tbl %>% mutate(pi_k = inclusionprobabilities(Mi, n=n) )
+
+##Create vector which indicates sampled PSU's
+
+tille_sampled <- ipums_tbl %>% with(., UPtille(pi_k))
+
+#Filters Mi table to include only the PSU's sampled
+onestage_WOR <- ipums_tbl %>% filter(tille_sampled == 1)
+
+#Grabs SSU's from sampled PSU's
+
+onestage_WOR_sample <- inner_join(ipums, onestage_WOR, by="Psu")
+
+#onestage_cluster_WOR_design <-  svydesign(id=~Psu, data=onestage_WOR_sample, fpc=~pi_k, pps="brewer")
+onestage_WOR_sample
+```
+
+```{r}
+set.seed(19970319)
+#One stage done
+##Stage 2
+m=20
+twostage_WOR_sample <- onestage_WOR_sample %>% group_by(Psu)  %>%  sample_n(size=m, replace=F) %>% ungroup()
+
+#twostage_WOR_sample
+twostage_cluster_WOR_design <- svydesign(id=~Psu+Ssu, data=twostage_WOR_sample, weight=~I(1/pi_k)+I(Mi/m), pps="brewer")
+
+
+print("Estimated population total of Inctot")
+svytotal(~Inctot, twostage_cluster_WOR_design)
+
+print("Estimated population mean of Inctot")
+svymean(~Inctot, twostage_cluster_WOR_design)
+
+```
+

@@ -1,0 +1,61 @@
+---
+title: "API Continued"
+date: "`r Sys.Date()`"
+output: 
+    pagedown::html_paged:
+      number_sections: false
+---
+  
+  ```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,comment=NA,warning=FALSE,message=FALSE)
+```
+
+### Stratified sampling
+
+```{r}
+library(tidyverse)
+library(survey)
+library(srvyr)
+
+data(api)
+
+## Or from file apipop  = read_csv("apipop.csv")
+
+
+apipop_complete = apipop %>% filter(!is.na(enroll))
+
+dim(apipop_complete)
+
+apipop_complete %>% summarise(TotalEnroll = sum(enroll))
+```
+
+
+
+```{r}
+set.seed(20160204)
+samp_n = 500
+
+counts = apipop_complete %>% count(stype)%>% mutate(prop=n/sum(n),
+                                                    prop_alloc = round(prop*samp_n))
+
+counts 
+
+```
+
+```{r}
+
+api_strat_500 =  inner_join(apipop_complete,counts,by="stype") %>% group_by(stype) %>% 
+  slice(sample(1:n,size=prop_alloc, replace=F))
+
+dim(api_strat_500)
+
+api.stratdesign = svydesign(~1,strata=~stype,data=api_strat_500,fpc=~n)
+
+svytotal(~enroll,api.stratdesign)
+confint(svytotal(~enroll,api.stratdesign))
+```
+
+
+
+
+
